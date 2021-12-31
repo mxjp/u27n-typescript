@@ -1,0 +1,11 @@
+{
+	"root": true,
+	"extends": "./node_modules/@mpt/eslint-rules/typescript.json",
+	"parserOptions": {
+		"tsconfigRootDir": ".",
+		"project": "./tsconfig.json"
+	},
+	"rules": {
+		"@typescript-eslint/explicit-member-accessibility": "off"
+	}
+}
