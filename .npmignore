@@ -1,0 +1,9 @@
+/.github
+/node_modules
+/test
+/test_out
+/.editorconfig
+/.eslint*
+/.npm*
+/ava*
+/tsconfig*
