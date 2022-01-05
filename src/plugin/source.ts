@@ -65,7 +65,7 @@ export class PreactSource extends Source<Fragment> {
 						commentOffset,
 
 						fragmentId: isValidFragmentId(id) ? id : undefined,
-						value: isValidFragmentValue(value) ? value : null,
+						value: toFragmentValue(value),
 						enabled: commentOffset === undefined,
 						...getNodeRange(node, commentOffset),
 					});
@@ -79,7 +79,7 @@ export class PreactSource extends Source<Fragment> {
 						commentOffset,
 
 						fragmentId: isValidFragmentId(id) ? id : undefined,
-						value: isValidFragmentValue(value) ? value : null,
+						value: toFragmentValue(value),
 						enabled: commentOffset === undefined,
 						...getNodeRange(node, commentOffset),
 					});
@@ -167,9 +167,17 @@ function isValidFragmentId(value: unknown): value is string {
 	return typeof value === "string";
 }
 
-function isValidFragmentValue(value: unknown): value is TranslationData.Value {
-	// TODO: Support plural values.
-	return typeof value === "string";
+function toFragmentValue(value: unknown): TranslationData.Value {
+	if (typeof value === "string") {
+		return value;
+	}
+	if (Array.isArray(value) && value.every(v => typeof v === "string")) {
+		return {
+			type: "plural",
+			value,
+		};
+	}
+	return null;
 }
 
 function parseStaticValue(value?: ts.Expression): StaticValue {

@@ -33,6 +33,12 @@ const updateSampleResult = unindent(`
 	t("foo", {}, "5");
 `);
 
+const config: PluginConfig = {
+	parseComments: true,
+	componentNames: ["T"],
+	functionNames: ["t"],
+};
+
 function sampleTranslationData(prefab: TranslationData, enabled: boolean): TranslationData {
 	const value = "foo";
 	return {
@@ -54,12 +60,6 @@ function singleLineComments(source: string) {
 
 for (const wrap of [null, multiLineComment, singleLineComments]) {
 	test(`parse & update: ${wrap ? wrap.name : "plain"}`, t => {
-		const config: PluginConfig = {
-			parseComments: true,
-			componentNames: ["T"],
-			functionNames: ["t"],
-		};
-
 		const processor = new DataProcessor();
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
@@ -75,11 +75,6 @@ for (const wrap of [null, multiLineComment, singleLineComments]) {
 
 for (const wrap of [multiLineComment, singleLineComments]) {
 	test(`parse & update (disabled comments): ${wrap.name}`, t => {
-		const config: PluginConfig = {
-			parseComments: true,
-			componentNames: ["T"],
-			functionNames: ["t"],
-		};
 		const processor = new DataProcessor();
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
@@ -93,3 +88,29 @@ for (const wrap of [multiLineComment, singleLineComments]) {
 		t.is(result.modifiedSources.size, 0);
 	});
 }
+
+test(`values parsing`, t => {
+	const source = new PreactSource("test.tsx", unindent(`
+		t("foo", "0");
+		t(["foo", "bar"], "1");
+
+		<T id="2" value="foo" />;
+		<T id="3" value={"bar"} />;
+		<T id="4" value={["foo", "bar"]} />;
+	`), config);
+
+	const parsed = source.fragments.map(fragment => {
+		return {
+			id: fragment.fragmentId,
+			value: fragment.value,
+		};
+	});
+
+	t.deepEqual(parsed, [
+		{ id: "0", value: "foo" },
+		{ id: "1", value: { type: "plural", value: ["foo", "bar"] } },
+		{ id: "2", value: "foo" },
+		{ id: "3", value: "bar" },
+		{ id: "4", value: { type: "plural", value: ["foo", "bar"] } },
+	]);
+});
