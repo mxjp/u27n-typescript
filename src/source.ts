@@ -4,21 +4,12 @@ import ts from "typescript";
 
 import { PluginConfig } from "./config.js";
 
-interface JsxFragment extends Source.Fragment {
-	type: "jsx";
-	node: ts.JsxSelfClosingElement;
-	commentOffset?: number;
-}
-
-interface JsFragment extends Source.Fragment {
-	type: "js";
+interface CallFragment extends Source.Fragment {
 	node: ts.CallExpression;
 	commentOffset?: number;
 }
 
-type Fragment = JsxFragment | JsFragment;
-
-export class PreactSource extends Source<Fragment> {
+export class TypeScriptSource extends Source<CallFragment> {
 	#filename: string;
 	#config: PluginConfig;
 
@@ -28,14 +19,13 @@ export class PreactSource extends Source<Fragment> {
 		this.#config = config;
 	}
 
-	protected parse(): Fragment[] {
+	protected parse(): CallFragment[] {
 		const filename = this.#filename;
 		const config = this.#config;
 
-		const componentNames = new Set(config.componentNames);
 		const functionNames = new Set(config.functionNames);
 
-		const fragments: Fragment[] = [];
+		const fragments: CallFragment[] = [];
 		const sourceFile = ts.createSourceFile(filename, this.content, ts.ScriptTarget.Latest, true);
 
 		(function parse(rootNode: ts.Node, commentOffset?: number) {
@@ -56,25 +46,11 @@ export class PreactSource extends Source<Fragment> {
 					}
 				}
 
-				if (ts.isJsxSelfClosingElement(node) && isName(node.tagName, componentNames)) {
-					const id = parseStaticValue(getJsxAttribute(node.attributes, "id")?.initializer);
-					const value = parseStaticValue(getJsxAttribute(node.attributes, "value")?.initializer);
-					fragments.push({
-						type: "jsx",
-						node,
-						commentOffset,
-
-						fragmentId: isValidFragmentId(id) ? id : undefined,
-						value: toFragmentValue(value),
-						enabled: commentOffset === undefined,
-						...getNodeRange(node, commentOffset),
-					});
-				} else if (ts.isCallExpression(node) && isName(node.expression, functionNames) && node.arguments.length >= 1 && node.arguments.length <= 3) {
+				if (ts.isCallExpression(node) && isName(node.expression, functionNames) && node.arguments.length >= 1 && node.arguments.length <= 3) {
 					const value = parseStaticValue(node.arguments[0]);
 					const id = node.arguments.length > 1 ? parseStaticValue(node.arguments[node.arguments.length - 1]) : undefined;
 
 					fragments.push({
-						type: "js",
 						node,
 						commentOffset,
 
@@ -105,40 +81,21 @@ export class PreactSource extends Source<Fragment> {
 			if (id !== fragment.fragmentId) {
 				modified = true;
 				const offset = fragment.commentOffset ?? 0;
-
-				if (fragment.type === "jsx") {
-					const idAttribute = getJsxAttribute(fragment.node.attributes, "id");
-					if (idAttribute) {
-						sourceUpdates.append({
-							start: idAttribute.getStart() + offset,
-							end: idAttribute.getEnd() + offset,
-							text: `id="${jsStringEscape(id)}"`,
-						});
-					} else {
-						const pos = (fragment.node.getEnd() - 2) + offset;
-						sourceUpdates.append({
-							start: pos,
-							end: pos,
-							text: `${/\s/.test(this.content.slice(pos - 1, pos)) ? "" : " "}id="${jsStringEscape(id)}" `,
-						});
-					}
+				const args = fragment.node.arguments;
+				const idArgument = args.length > 1 ? args[args.length - 1] : null;
+				if (idArgument && isValidFragmentId(parseStaticValue(idArgument))) {
+					sourceUpdates.append({
+						start: idArgument.getStart() + offset,
+						end: idArgument.getEnd() + offset,
+						text: `"${jsStringEscape(id)}"`,
+					});
 				} else {
-					const args = fragment.node.arguments;
-					const idArgument = args.length > 1 ? args[args.length - 1] : null;
-					if (idArgument && isValidFragmentId(parseStaticValue(idArgument))) {
-						sourceUpdates.append({
-							start: idArgument.getStart() + offset,
-							end: idArgument.getEnd() + offset,
-							text: `"${jsStringEscape(id)}"`,
-						});
-					} else {
-						const pos = (fragment.node.getEnd() - 1) + offset;
-						sourceUpdates.append({
-							start: pos,
-							end: pos,
-							text: `, "${jsStringEscape(id)}"`,
-						});
-					}
+					const pos = (fragment.node.getEnd() - 1) + offset;
+					sourceUpdates.append({
+						start: pos,
+						end: pos,
+						text: `, "${jsStringEscape(id)}"`,
+					});
 				}
 			}
 
@@ -155,10 +112,6 @@ export class PreactSource extends Source<Fragment> {
 			modified,
 		};
 	}
-}
-
-function getJsxAttribute(attributes: ts.JsxAttributes, name: string): ts.JsxAttribute | undefined {
-	return attributes.properties.find(p => ts.isJsxAttribute(p) && p.name.text === name) as ts.JsxAttribute;
 }
 
 type StaticValue = undefined | string | StaticValue[];
@@ -189,9 +142,6 @@ function parseStaticValue(value?: ts.Expression): StaticValue {
 	}
 	if (ts.isArrayLiteralExpression(value)) {
 		return value.elements.map(parseStaticValue);
-	}
-	if (ts.isJsxExpression(value)) {
-		return parseStaticValue(value.expression);
 	}
 }
 

@@ -5,9 +5,7 @@
 		"moduleResolution": "Node",
 		"strict": true,
 		"sourceMap": true,
-		"esModuleInterop": true,
-		"jsx": "react-jsx",
-		"jsxImportSource": "preact"
+		"esModuleInterop": true
 	},
 	"include": [
 		"./src",

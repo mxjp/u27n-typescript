@@ -1,15 +1,11 @@
 import { DataProcessor, Source, TranslationData } from "@u27n/core";
 import test from "ava";
 
-import { PluginConfig } from "../src/plugin/config.js";
-import { PreactSource } from "../src/plugin/source.js";
+import { PluginConfig } from "../src/config.js";
+import { TypeScriptSource } from "../src/source.js";
 import { unindent } from "./_utility/unindent.js";
 
 const updateSample = unindent(`
-	<T value="foo" />
-	<T value="foo" id="7" />
-	<T value="foo" id="7" />
-
 	t("foo");
 	t("foo", "42");
 	t("foo", "42");
@@ -20,29 +16,24 @@ const updateSample = unindent(`
 `);
 
 const updateSampleResult = unindent(`
-	<T value="foo" id="0" />
-	<T value="foo" id="7" />
-	<T value="foo" id="1" />
-
-	t("foo", "2");
+	t("foo", "0");
 	t("foo", "42");
-	t("foo", "3");
+	t("foo", "1");
 
-	t("foo", {}, "4");
+	t("foo", {}, "2");
 	t("foo", {}, "52");
-	t("foo", {}, "5");
+	t("foo", {}, "3");
 `);
 
 const config: PluginConfig = {
 	parseComments: true,
-	componentNames: ["T"],
 	functionNames: ["t"],
 };
 
 function sampleTranslationData(prefab: TranslationData, enabled: boolean): TranslationData {
 	const value = "foo";
 	return {
-		fragments: Object.fromEntries([0, 1, 2, 3, 4, 5, 7, 42, 52].map(id => ([id, { ...prefab.fragments[id], enabled, value }]))),
+		fragments: Object.fromEntries([0, 1, 2, 3, 42, 52].map(id => ([id, { ...prefab.fragments[id], enabled, value }]))),
 		obsolete: prefab.obsolete,
 		version: prefab.version,
 	};
@@ -63,7 +54,7 @@ for (const wrap of [null, multiLineComment, singleLineComments]) {
 		const processor = new DataProcessor();
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
-				["src/test.tsx", new PreactSource("test.tsx", wrap ? wrap(updateSample) : updateSample, config)],
+				["src/test.tsx", new TypeScriptSource("test.tsx", wrap ? wrap(updateSample) : updateSample, config)],
 			]),
 		});
 		t.is(result.modifiedSources.get("src/test.tsx"), wrap ? wrap(updateSampleResult) : updateSampleResult);
@@ -78,7 +69,7 @@ for (const wrap of [multiLineComment, singleLineComments]) {
 		const processor = new DataProcessor();
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
-				["src/test.tsx", new PreactSource("test.tsx", wrap(updateSample), {
+				["src/test.tsx", new TypeScriptSource("test.tsx", wrap(updateSample), {
 					...config,
 					parseComments: false,
 				})],
@@ -90,13 +81,9 @@ for (const wrap of [multiLineComment, singleLineComments]) {
 }
 
 test(`values parsing`, t => {
-	const source = new PreactSource("test.tsx", unindent(`
+	const source = new TypeScriptSource("test.tsx", unindent(`
 		t("foo", "0");
 		t(["foo", "bar"], "1");
-
-		<T id="2" value="foo" />;
-		<T id="3" value={"bar"} />;
-		<T id="4" value={["foo", "bar"]} />;
 	`), config);
 
 	const parsed = source.fragments.map(fragment => {
@@ -109,8 +96,5 @@ test(`values parsing`, t => {
 	t.deepEqual(parsed, [
 		{ id: "0", value: "foo" },
 		{ id: "1", value: { type: "plural", value: ["foo", "bar"] } },
-		{ id: "2", value: "foo" },
-		{ id: "3", value: "bar" },
-		{ id: "4", value: { type: "plural", value: ["foo", "bar"] } },
 	]);
 });

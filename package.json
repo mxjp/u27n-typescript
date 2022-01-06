@@ -1,20 +1,8 @@
 {
-	"name": "@u27n/preact",
-	"version": "1.2.0",
+	"name": "@u27n/typescript",
+	"version": "1.0.0",
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/es/index.js",
-	"exports": {
-		".": {
-			"module": "./dist/es/index.js",
-			"import": "./dist/es/index.js",
-			"default": "./dist/cjs/index.js"
-		},
-		"./plugin": {
-			"module": "./dist/es/plugin/index.js",
-			"import": "./dist/es/plugin/index.js",
-			"default": "./dist/cjs/plugin/index.js"
-		}
-	},
 	"scripts": {
 		"clean": "rimraf ./dist/**/* ./test_out/**/* ./test_data/**/*",
 		"build": "npm run clean && concurrently npm:build:*",
@@ -31,14 +19,12 @@
 		"@u27n/core": "^1.5.0",
 		"ava": "^3.15.0",
 		"concurrently": "^6.5.1",
-		"preact": "^10.6.4",
 		"rimraf": "^3.0.2",
 		"typescript": "^4.5.4"
 	},
 	"peerDependencies": {
 		"@u27n/core": "^1.5.0",
-		"typescript": "^4.5.0",
-		"preact": "^10.6.0"
+		"typescript": "^4.5.0"
 	},
 	"dependencies": {
 		"js-string-escape": "^1.0.1"

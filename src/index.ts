@@ -1,2 +1,3 @@
-export * from "./context.js";
-export * from "./controller-context.js";
+import { TypeScriptPlugin } from "./plugin.js";
+
+export default TypeScriptPlugin;
