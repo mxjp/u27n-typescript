@@ -3,7 +3,6 @@ This is a U27N plugin for translating typescript or plain javascript sources.
 
 When writing text fragments, this plugin will automatically add and update fragment ids.
 
-
 ## Setup
 ```bash
 npm install --save-dev @u27n/typescript
