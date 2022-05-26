@@ -71,6 +71,10 @@ export class TypeScriptSource extends Source<CallFragment> {
 		return fragments;
 	}
 
+	public getOutputFilenames(): string[] {
+		return this.#config.getOutputFilenames?.(this.#filename) ?? [];
+	}
+
 	public update(_context: Source.UpdateContext): Source.UpdateResult {
 		let modified = false;
 		const sourceUpdates = new SourceUpdates(this.content);

@@ -26,6 +26,7 @@ const updateSampleResult = unindent(`
 `);
 
 const config: PluginConfig = {
+	getOutputFilenames: null,
 	parseComments: true,
 	functionNames: ["t"],
 };

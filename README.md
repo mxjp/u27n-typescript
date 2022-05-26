@@ -24,6 +24,10 @@ Add the following to your `u27n.json` file:
         {
             "entry": "@u27n/typescript",
             "config": {
+                // Path of the tsconfig file that is used
+                // for mapping output filenames:
+                "tsconfig": "./tsconfig.json",
+
                 // If true, the parser tries to parse comment content as typescript
                 // and marks fragments found in comments as disabled.
                 "parseComments": false,
