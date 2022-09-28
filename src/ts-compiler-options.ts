@@ -1,3 +1,4 @@
+import { dirname, resolve } from "path";
 import ts from "typescript";
 
 export interface TsCompilerOptionsJson {
@@ -14,7 +15,7 @@ export function getTsCompilerOptionsJson(filename: string): TsCompilerOptionsJso
 	const config = ts.readConfigFile(filename, ts.sys.readFile).config as TsconfigJson;
 	if (config.extends) {
 		return {
-			...getTsCompilerOptionsJson(require.resolve(config.extends)),
+			...getTsCompilerOptionsJson(resolve(dirname(filename), config.extends)),
 			...config.compilerOptions,
 		};
 	}
