@@ -1,7 +1,13 @@
 # U27N Typescript Plugin
 This is a U27N plugin for translating typescript or plain javascript sources.
 
-When writing text fragments, this plugin will automatically add and update fragment ids.
+When writing text fragments, this plugin will automatically add and update fragment ids:
+
+```ts
+t("Hello World!");
+// will be changed to:
+t("Hello World!", "<some id>");
+```
 
 ## Setup
 ```bash
