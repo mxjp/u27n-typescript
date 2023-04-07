@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0
++ Update to typescript 5
+
 ## 2.0
 + Update to u27n core 2.0.0
 
