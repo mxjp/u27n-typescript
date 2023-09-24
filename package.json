@@ -1,6 +1,6 @@
 {
 	"name": "@u27n/typescript",
-	"version": "3.0.0",
+	"version": "4.0.0",
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/es/index.js",
 	"scripts": {
@@ -15,17 +15,17 @@
 		"prepack": "npm test && npm run build && npm run lint"
 	},
 	"devDependencies": {
-		"@mpt/eslint-rules": "^2.0.1",
+		"@mpt/eslint-rules": "^4.0.2",
 		"@types/js-string-escape": "^1.0.1",
-		"@types/node": "^18.15.11",
-		"@u27n/core": "^2.2.0",
-		"ava": "^5.2.0",
-		"concurrently": "^8.0.1",
-		"rimraf": "^3.0.2",
-		"typescript": "^5.0.3"
+		"@types/node": "^20.6.5",
+		"@u27n/core": "^3.0.0",
+		"ava": "^5.3.1",
+		"concurrently": "^8.2.1",
+		"rimraf": "^5.0.1",
+		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
-		"@u27n/core": "^2.2.0",
+		"@u27n/core": "^3.0.0",
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {

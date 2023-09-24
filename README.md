@@ -45,3 +45,11 @@ Add the following to your `u27n.json` file:
     ]
 }
 ```
+
+## Compatibility
+The table below shows what [core](https://www.npmjs.com/package/@u27n/core) and typescript versions are supported by this package.
+
+| @u27n/typescript | @u27n/core | typescript |
+|-|-|-|
+| 4.x | 3.x | 5.x |
+| 3.x | 2.x | 5.x |
