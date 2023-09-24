@@ -1,5 +1,8 @@
 # Changelog
 
+## 4.0
++ **Breaking:** Use core v3 package.
+
 ## 3.0
 + Update to typescript 5
 
