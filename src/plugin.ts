@@ -1,5 +1,6 @@
-import { Plugin, PluginContext, PluginSetupContext, Source } from "@u27n/core";
-import { dirname, relative, resolve } from "path";
+import { dirname, relative, resolve } from "node:path";
+
+import { Plugin, Source } from "@u27n/core";
 import ts from "typescript";
 
 import { PluginConfig, PluginConfigJson } from "./config.js";
@@ -11,7 +12,7 @@ const EXTENSION = /\.tsx?$/;
 export class TypeScriptPlugin implements Plugin {
 	#config: PluginConfig = undefined!;
 
-	public async setup(context: PluginSetupContext, config: PluginConfigJson): Promise<void> {
+	async setup(context: Plugin.Context, config: PluginConfigJson): Promise<void> {
 		let getOutputFilenames: PluginConfig.GetOutputFilenamesFn | null = null;
 
 		const tsconfigFilename = config.tsconfig
@@ -40,9 +41,9 @@ export class TypeScriptPlugin implements Plugin {
 		};
 	}
 
-	public createSource(filename: string, content: string, _context: PluginContext): Source | undefined {
-		if (EXTENSION.test(filename)) {
-			return new TypeScriptSource(filename, content, this.#config);
+	async createSource(context: Plugin.CreateSourceContext): Promise<Source | undefined> {
+		if (EXTENSION.test(context.filename)) {
+			return new TypeScriptSource(context.filename, await context.getTextContent(), this.#config);
 		}
 	}
 }

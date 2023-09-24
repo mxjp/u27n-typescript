@@ -1,4 +1,4 @@
-import { Source, SourceUpdates, TranslationData } from "@u27n/core";
+import { DataAdapter, Source, TextReplacements, TextSource } from "@u27n/core";
 import jsStringEscape from "js-string-escape";
 import ts from "typescript";
 
@@ -9,7 +9,7 @@ interface CallFragment extends Source.Fragment {
 	commentOffset?: number;
 }
 
-export class TypeScriptSource extends Source<CallFragment> {
+export class TypeScriptSource extends TextSource<CallFragment> {
 	#filename: string;
 	#config: PluginConfig;
 
@@ -75,27 +75,27 @@ export class TypeScriptSource extends Source<CallFragment> {
 		return this.#config.getOutputFilenames?.(this.#filename) ?? [];
 	}
 
-	public update(_context: Source.UpdateContext): Source.UpdateResult {
+	public update(context: Source.UpdateContext): Source.UpdateResult {
 		let modified = false;
-		const sourceUpdates = new SourceUpdates(this.content);
+		const replacements = new TextReplacements(this.content);
 		const fragments = new Map<string, Source.FragmentUpdate>();
 
 		for (const fragment of this.fragments) {
-			const id = _context.updateId(fragment);
+			const id = context.updateId(fragment);
 			if (id !== fragment.fragmentId) {
 				modified = true;
 				const offset = fragment.commentOffset ?? 0;
 				const args = fragment.node.arguments;
 				const idArgument = args.length > 1 ? args[args.length - 1] : null;
 				if (idArgument && isValidFragmentId(parseStaticValue(idArgument))) {
-					sourceUpdates.append({
+					replacements.replace({
 						start: idArgument.getStart() + offset,
 						end: idArgument.getEnd() + offset,
 						text: `"${jsStringEscape(id)}"`,
 					});
 				} else {
 					const pos = (fragment.node.getEnd() - 1) + offset;
-					sourceUpdates.append({
+					replacements.replace({
 						start: pos,
 						end: pos,
 						text: `, "${jsStringEscape(id)}"`,
@@ -111,9 +111,9 @@ export class TypeScriptSource extends Source<CallFragment> {
 		}
 
 		return {
-			content: sourceUpdates.format(),
-			fragments,
 			modified,
+			fragments,
+			textContent: replacements.format(),
 		};
 	}
 }
@@ -124,7 +124,7 @@ function isValidFragmentId(value: unknown): value is string {
 	return typeof value === "string";
 }
 
-function toFragmentValue(value: unknown): TranslationData.Value {
+function toFragmentValue(value: unknown): DataAdapter.Value {
 	if (typeof value === "string") {
 		return value;
 	}

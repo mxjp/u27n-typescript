@@ -4,28 +4,28 @@
 	"main": "./dist/cjs/index.js",
 	"module": "./dist/es/index.js",
 	"scripts": {
-		"clean": "rimraf ./dist/**/* ./test_out/**/* ./test_data/**/*",
+		"clean": "rimraf ./dist ./test_out ./test_data",
 		"build": "npm run clean && concurrently npm:build:*",
 		"build:es": "tsc -p tsconfig-es.json",
 		"build:cjs": "tsc -p tsconfig-cjs.json",
 		"watch:cjs": "tsc -p tsconfig-cjs.json -w",
 		"test": "npm run clean && tsc -p tsconfig-test.json && ava -v",
 		"start": "npm run clean && tsc -p tsconfig-test.json && concurrently \"tsc -p tsconfig-test.json -w\" \"ava -v -w\"",
-		"lint": "eslint --no-error-on-unmatched-pattern --config .eslintrc.json ./src/**/* ./test/**/*",
+		"lint": "eslint --no-error-on-unmatched-pattern --config .eslintrc.js ./src/**/* ./test/**/*",
 		"prepack": "npm test && npm run build && npm run lint"
 	},
 	"devDependencies": {
 		"@mpt/eslint-rules": "^4.0.2",
 		"@types/js-string-escape": "^1.0.1",
 		"@types/node": "^20.6.5",
-		"@u27n/core": "^3.0.0",
+		"@u27n/core": "^3.0.4",
 		"ava": "^5.3.1",
 		"concurrently": "^8.2.1",
 		"rimraf": "^5.0.1",
 		"typescript": "^5.2.2"
 	},
 	"peerDependencies": {
-		"@u27n/core": "^3.0.0",
+		"@u27n/core": "^3.0.4",
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {

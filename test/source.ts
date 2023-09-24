@@ -1,4 +1,5 @@
-import { DataProcessor, Source, TranslationData } from "@u27n/core";
+import { DataProcessor, Source } from "@u27n/core";
+import { DataJson, DefaultDataAdapter } from "@u27n/core/default-data-adapter";
 import test from "ava";
 
 import { PluginConfig } from "../src/config.js";
@@ -31,7 +32,7 @@ const config: PluginConfig = {
 	functionNames: ["t"],
 };
 
-function sampleTranslationData(prefab: TranslationData, enabled: boolean): TranslationData {
+function sampleTranslationData(prefab: DataJson, enabled: boolean): DataJson {
 	const value = "foo";
 	return {
 		fragments: Object.fromEntries([0, 1, 2, 3, 42, 52].map(id => ([id, { ...prefab.fragments[id], enabled, value }]))),
@@ -50,24 +51,32 @@ function singleLineComments(source: string) {
 		.join("\n");
 }
 
+function getData(processor: DataProcessor): DataJson {
+	return (processor.dataAdapter as DefaultDataAdapter).exportJson();
+}
+
 for (const wrap of [null, multiLineComment, singleLineComments]) {
 	test(`parse & update: ${wrap ? wrap.name : "plain"}`, t => {
-		const processor = new DataProcessor();
+		const processor = new DataProcessor({
+			dataAdapter: new DefaultDataAdapter(),
+		});
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
 				["src/test.tsx", new TypeScriptSource("test.tsx", wrap ? wrap(updateSample) : updateSample, config)],
 			]),
 		});
-		t.is(result.modifiedSources.get("src/test.tsx"), wrap ? wrap(updateSampleResult) : updateSampleResult);
+		t.is(result.modifiedSources.get("src/test.tsx")?.textContent, wrap ? wrap(updateSampleResult) : updateSampleResult);
 
-		t.true(processor.translationDataModified);
-		t.deepEqual(processor.translationData, sampleTranslationData(processor.translationData, wrap === null));
+		t.true(processor.dataAdapter.modified);
+		t.deepEqual(getData(processor), sampleTranslationData(getData(processor), wrap === null));
 	});
 }
 
 for (const wrap of [multiLineComment, singleLineComments]) {
 	test(`parse & update (disabled comments): ${wrap.name}`, t => {
-		const processor = new DataProcessor();
+		const processor = new DataProcessor({
+			dataAdapter: new DefaultDataAdapter(),
+		});
 		const result = processor.applyUpdate({
 			updatedSources: new Map<string, Source>([
 				["src/test.tsx", new TypeScriptSource("test.tsx", wrap(updateSample), {
@@ -76,7 +85,7 @@ for (const wrap of [multiLineComment, singleLineComments]) {
 				})],
 			]),
 		});
-		t.false(processor.translationDataModified);
+		t.false(processor.dataAdapter.modified);
 		t.is(result.modifiedSources.size, 0);
 	});
 }
